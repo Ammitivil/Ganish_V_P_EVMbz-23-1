@@ -1,0 +1,32 @@
+﻿  CompGrafic.cpp
+C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\CompGrafic\CompGrafic.cpp(75,32): warning C4305: аргумент: усечение из "double" в "GLclampf"
+C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\CompGrafic\CompGrafic.cpp(75,27): warning C4305: аргумент: усечение из "double" в "GLclampf"
+C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\CompGrafic\CompGrafic.cpp(75,22): warning C4305: аргумент: усечение из "double" в "GLclampf"
+C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\CompGrafic\CompGrafic.cpp(79,25): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\CompGrafic\CompGrafic.cpp(80,15): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\CompGrafic\CompGrafic.cpp(81,15): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
+C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\CompGrafic\CompGrafic.cpp(82,15): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
+     Создается библиотека C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\x64\Debug\CompGrafic.lib и объект C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\x64\Debug\CompGrafic.exp
+LINK : warning LNK4217: Символ "glewInit", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "glewGetErrorString", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "__glewBindBuffer", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "__glewBufferData", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "__glewGenBuffers", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "__glewEnableVertexAttribArray", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "__glewVertexAttribPointer", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "__glewBindVertexArray", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "__glewGenVertexArrays", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "glewExperimental", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
+LINK : warning LNK4217: Символ "__glewAttachShader", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewCompileShader", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewCreateProgram", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewCreateShader", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewDeleteShader", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewGetShaderInfoLog", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewGetShaderiv", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewGetUniformLocation", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: void __cdecl Shader::glUniform(char const *,int,int,int)" (?glUniform@Shader@@QEAAXPEBDHHH@Z)".
+LINK : warning LNK4217: Символ "__glewLinkProgram", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewShaderSource", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: int __cdecl Shader::load(char const *,char const *)" (?load@Shader@@QEAAHPEBD0@Z)".
+LINK : warning LNK4217: Символ "__glewUniform4f", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: void __cdecl Shader::glUniform(char const *,int,int,int)" (?glUniform@Shader@@QEAAXPEBDHHH@Z)".
+LINK : warning LNK4217: Символ "__glewUseProgram", определенный в "glew.obj", импортирован "Shaders.obj" в функции ""public: void __cdecl Shader::use(void)" (?use@Shader@@QEAAXXZ)".
+  CompGrafic.vcxproj -> C:\Users\Honor\source\repos\Ganish_V_P_EVMbz-23-1\x64\Debug\CompGrafic.exe

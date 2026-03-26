@@ -1,4 +1,7 @@
-﻿#define GLEW_DLL
+﻿// Lab1.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
+//
+
+#define GLEW_DLL
 #define GLFW_DLL
 
 #include <iostream>
@@ -6,18 +9,15 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#include "Shaders.h"
+#include "GrafShaders.h"
 
 
-float points[] = { -0.5f, -0.5f, 0.0f,
-                    0.5f, -0.5f, 0.0f,
-                    0.5f, 0.5f, 0.0f,
-                   -0.5f, 0.5f, 0.0f
+float points[] = { -0.3f,  0.7f, 0.0f,
+                    0.4f, -0.3f, 0.0f,
+                   -0.3f, -0.3f, 0.0f
 };
-unsigned int indices[] = {
-      0, 1, 2,
-      0, 2, 3,
-};
+GLuint indices[] = {0, 1, 2};
+
 
 int main()
 {
@@ -60,7 +60,7 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -72,18 +72,24 @@ int main()
     }
 
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.8, 0.2, 0.7, 1.0);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         shader->use();
-      
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // float timeValue = glfwGetTime();
+        // float r = (cos(timeValue) + 1.0f) / 2.0f;
+        // float g = (sin(timeValue) + cos(timeValue)) / 2.0f;
+        // shader->glUniform("ourColor", r, g, 1.0f, 1.0f);
+
+        // Другой вариант использования
         float timeValue = glfwGetTime();
-        int r = 255 * cos(timeValue);
-        int g = 127 * sin(timeValue) + 105 * cos(timeValue);
-        int b = 110 * sin(timeValue);
-        shader->glUniform("ourColor", r, g, b, 1.0f);
+        int r = 255*cos(timeValue);
+        int g = 127*sin(timeValue) + 127*cos(timeValue);
+        shader->glUniform("ourColor", r, g, 255, 1.0f);
 
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
