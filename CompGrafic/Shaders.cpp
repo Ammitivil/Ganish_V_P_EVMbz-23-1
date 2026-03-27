@@ -1,4 +1,4 @@
-#define GLEW_DLL
+п»ї#define GLEW_DLL
 #define GLFW_DLL
 
 #include "GL/glew.h"
@@ -17,7 +17,7 @@ Shader::Shader() {
 std::string Shader::readShFile(const char* path) {
 	std::ifstream file(path, std::ios::in);
 	if (!file.is_open()) {
-		fprintf(stderr, "Ошибка открытия файла шейдера: %s\n", path);
+		fprintf(stderr, "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: %s\n", path);
 		return "";
 	}
 
@@ -37,13 +37,13 @@ int Shader::load(const char* vert_sh_path, const char* frag_sh_path) {
 	glShaderSource(vs, 1, &vert_shader, NULL);
 	glCompileShader(vs);
 
-	// Проверка компиляции вершинного шейдера
+	// РџСЂРѕРІРµСЂРєР° РєРѕРјРїРёР»СЏС†РёРё РІРµСЂС€РёРЅРЅРѕРіРѕ С€РµР№РґРµСЂР°
 	GLint success;
 	GLchar infoLog[1024];
 	glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		glGetShaderInfoLog(vs, 1024, NULL, infoLog);
-		fprintf(stderr, "Ошибка компиляции вершинного шейдера: %s\n", infoLog);
+		fprintf(stderr, "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: %s\n", infoLog);
 		return 0;
 	}
 
@@ -51,11 +51,10 @@ int Shader::load(const char* vert_sh_path, const char* frag_sh_path) {
 	glShaderSource(fs, 1, &frag_shader, NULL);
 	glCompileShader(fs);
 
-	// Проверка компиляции фрагментного шейдера
 	glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		glGetShaderInfoLog(fs, 1024, NULL, infoLog);
-		fprintf(stderr, "Ошибка компиляции фрагментного шейдера: %s\n", infoLog);
+		fprintf(stderr, "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: %s\n", infoLog);
 		glDeleteShader(vs);
 		return 0;
 	}
@@ -75,18 +74,18 @@ void Shader::use() {
 	glUseProgram(shaderProgram);
 };
 
-// Валидация входящего значения цвета и альфы для float (0.0-1.0)
+// Р’Р°Р»РёРґР°С†РёСЏ РІС…РѕРґСЏС‰РµРіРѕ Р·РЅР°С‡РµРЅРёСЏ С†РІРµС‚Р° Рё Р°Р»СЊС„С‹ РґР»СЏ float (0.0-1.0)
 void Shader::validate(float& _v, float _min = 0.0f, float _max = 1.0f) {
 	if (_v < _min) { _v = _min; return; }
 	if (_v > _max) { _v = _max; return; }
 };
-// Валидация входящего значения цвета и альфы для целочисленных (0-255)
+// Р’Р°Р»РёРґР°С†РёСЏ РІС…РѕРґСЏС‰РµРіРѕ Р·РЅР°С‡РµРЅРёСЏ С†РІРµС‚Р° Рё Р°Р»СЊС„С‹ РґР»СЏ С†РµР»РѕС‡РёСЃР»РµРЅРЅС‹С… (0-255)
 void Shader::validate(int& _v, int _min = 0, int _max = 255) {
 	if (_v < _min) { _v = _min; return; }
 	if (_v > _max) { _v = _max; return; }
 };
 
-// Перевод целочисленного значения цвета в float (0.0-1.0)
+// РџРµСЂРµРІРѕРґ С†РµР»РѕС‡РёСЃР»РµРЅРЅРѕРіРѕ Р·РЅР°С‡РµРЅРёСЏ С†РІРµС‚Р° РІ float (0.0-1.0)
 float Shader::intToFloat(int& _v) {
 	float _nv = _v / 255.0f;
 	validate(_nv);

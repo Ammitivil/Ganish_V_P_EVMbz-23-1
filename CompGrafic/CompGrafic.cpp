@@ -75,7 +75,7 @@ int main()
         glClearColor(0.8, 0.2, 0.7, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
         shader->use();
-      
+
         float timeValue = glfwGetTime();
         int r = 255 * cos(timeValue);
         int g = 127 * sin(timeValue) + 105 * cos(timeValue);
