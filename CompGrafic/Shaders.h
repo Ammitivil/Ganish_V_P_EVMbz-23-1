@@ -6,36 +6,38 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include <string>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Shader {
 private:
-    // читать шейдер из файла
     std::string readShFile(const char* path);
-
-    // Валидация входящего значения цвета и альфы для float (0.0-1.0)
     void validate(float& _v, float _min = 0.0f, float _max = 1.0f);
-    // Валидация входящего значения цвета и альфы для целочисленных (0-255)
     void validate(int& _v, int _min = 0, int _max = 255);
-    // Перевод целочисленного значения цвета в float (0.0-1.0).
-    // Использовать только после валидации значения
     float intToFloat(int& _v);
 
 public:
     GLuint shaderProgram = 0;
 
     Shader();
-
-    // Принимает путь до файлов шейдеров, возвращает статус загрузки 0/1
     int load(const char* vert_sh_path, const char* frag_sh_path);
-
     void use();
 
-    // Color name, RGB = 0.0-1.0, alpha = 1.0
+    // Унифицированные методы для передачи uniform-переменных
+    void setMat4(const char* name, const glm::mat4& mat) {
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, name), 1, GL_FALSE, glm::value_ptr(mat));
+    }
+
+    void setVec3(const char* name, const glm::vec3& vec) {
+        glUniform3fv(glGetUniformLocation(shaderProgram, name), 1, glm::value_ptr(vec));
+    }
+
+    void setFloat(const char* name, float value) {
+        glUniform1f(glGetUniformLocation(shaderProgram, name), value);
+    }
+
     void glUniform(const char* cl_name, float r, float g, float b);
-    // Color name, RGB = 0.0-1.0, alpha = 0.0-1.0
     void glUniform(const char* cl_name, float r, float g, float b, float a);
-    // Color name, RGB = 0-255, alpha = 1.0
     void glUniform(const char* cl_name, int r, int g, int b);
-    // Color name, RGB = 0-255, alpha = 0.0-1.0
     void glUniform(const char* cl_name, int r, int g, int b, float a);
 };
