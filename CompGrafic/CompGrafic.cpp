@@ -14,7 +14,7 @@
 #include "Model.h"
 
 // Глобальные переменные для камеры
-glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 100.0f);  // Увеличил расстояние
+glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 100.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -72,14 +72,14 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
     if (pitch < -89.0f)
         pitch = -89.0f;
 
-    // Обновляем направление взгляда (для мыши)
+    // Направление взгляда (для мыши)
     glm::vec3 direction;
     direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(direction);
 
-    // Обновляем позицию камеры на орбите в соответствии с направлением взгляда
+    // Позиция камеры на орбите в соответствии с направлением взгляда
     cameraPos = glm::normalize(cameraFront) * orbitRadius;
 }
 
@@ -91,7 +91,7 @@ void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         currentSpeed *= 3.0f;
 
-    // Клавиши A/D - вращение вокруг модели по горизонтали
+    // Вращение вокруг модели по горизонтали
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         orbitAngle += currentSpeed;
         yaw += currentSpeed * 57.2958f;
@@ -101,7 +101,7 @@ void processInput(GLFWwindow* window) {
         yaw -= currentSpeed * 57.2958f;
     }
 
-    // Клавиши W/S - вращение вокруг модели по вертикали
+    // Вращение вокруг модели по вертикали
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         orbitPitch += currentSpeed;
         pitch += currentSpeed * 57.2958f;
@@ -119,14 +119,14 @@ void processInput(GLFWwindow* window) {
         }
     }
 
-    // Обновляем направление взгляда на основе углов
+    // Направление взгляда на основе углов
     glm::vec3 direction;
     direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(direction);
 
-    // Обновляем позицию камеры на орбите
+    // Позиция камеры на орбите
     cameraPos = cameraFront * orbitRadius;
 }
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
         glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
         float aspect = static_cast<float>(scrWidth) / static_cast<float>(scrHeight);
 
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f); // Увеличил дальнюю плоскость отсечения
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
         // Камера смотрит на центр (0, 0, 0), где находится модель
         glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
 
