@@ -21,5 +21,21 @@
     <ClCompile Include="glew-2.1.0\src\glew.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Shaders.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="frag_shader.glsl">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="vert_shader.glsl">
+      <Filter>Исходные файлы</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Shaders.h">
+      <Filter>Исходные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
