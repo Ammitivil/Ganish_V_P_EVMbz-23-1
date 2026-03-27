@@ -3,6 +3,7 @@
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -43,7 +44,7 @@ int Shader::load(const char* vert_sh_path, const char* frag_sh_path) {
     glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vs, 1024, NULL, infoLog);
-        fprintf(stderr, "Ошибка компиляции вершинного шейдера %s\n", infoLog);
+        fprintf(stderr, "Ошибка компиляции вершинного шейдера: %s\n", infoLog);
         return 0;
     }
 
@@ -51,6 +52,7 @@ int Shader::load(const char* vert_sh_path, const char* frag_sh_path) {
     glShaderSource(fs, 1, &frag_shader, NULL);
     glCompileShader(fs);
 
+    // Проверка компиляции фрагментного шейдера
     glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fs, 1024, NULL, infoLog);
@@ -74,15 +76,17 @@ void Shader::use() {
     glUseProgram(shaderProgram);
 };
 
+void Shader::setMat4(const char* name, const glm::mat4& mat) {
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, name), 1, GL_FALSE, glm::value_ptr(mat));
+}
+
 // Валидация входящего значения цвета и альфы для float (0.0-1.0)
-// УБИРАЕМ аргументы по умолчанию из определения!
 void Shader::validate(float& _v, float _min, float _max) {
     if (_v < _min) { _v = _min; return; }
     if (_v > _max) { _v = _max; return; }
 };
 
 // Валидация входящего значения цвета и альфы для целочисленных (0-255)
-// УБИРАЕМ аргументы по умолчанию из определения!
 void Shader::validate(int& _v, int _min, int _max) {
     if (_v < _min) { _v = _min; return; }
     if (_v > _max) { _v = _max; return; }
@@ -90,8 +94,10 @@ void Shader::validate(int& _v, int _min, int _max) {
 
 // Перевод целочисленного значения цвета в float (0.0-1.0)
 float Shader::intToFloat(int& _v) {
+    validate(_v, 0, 255);  // валидируем целое число
     float _nv = _v / 255.0f;
-    validate(_nv, 0.0f, 1.0f);  // Явно передаем аргументы
+    // валидируем float результат (хотя деление на 255 уже даёт значение в [0,1])
+    validate(_nv, 0.0f, 1.0f);
     return _nv;
 };
 

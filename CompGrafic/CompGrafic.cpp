@@ -3,36 +3,32 @@
 
 #include <iostream>
 #include <cmath>
-/*Подключение*/
+
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Shaders.h"
 
-// Глобальные переменные для камеры
+//Параметры камеры
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-// Параметры для углов Эйлера
-float yaw = -90.0f;    // Рыскание (начальное направление -Z)
-float pitch = 0.0f;    // Тангаж
-float lastX = 256.0f;  // Половина ширины окна (512/2)
-float lastY = 256.0f;  // Половина высоты окна (512/2)
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = 512.0f / 2.0f;
+float lastY = 512.0f / 2.0f;
 bool firstMouse = true;
+float sensitivity = 0.1f;
 
-// Скорость движения и чувствительность мыши
-float cameraSpeed = 0.05f;
-float mouseSensitivity = 0.1f;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
-// Функции обратного вызова
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
+//Функция обратного вызова мыши
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
@@ -44,23 +40,21 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // Перевернуто, так как Y увеличивается снизу вверх
+    float yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
 
-    xoffset *= mouseSensitivity;
-    yoffset *= mouseSensitivity;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
 
     yaw += xoffset;
     pitch += yoffset;
 
-    // Ограничение тангажа, чтобы избежать переворота камеры
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
+    // Ограничение тангажа (чтобы избежать переворота камеры)
+    if (pitch > 89.0f)  pitch = 89.0f;
+    if (pitch < -89.0f) pitch = -89.0f;
 
-    // Расчет нового вектора направления
+    // Вычисление нового вектора направления по углам Эйлера
     glm::vec3 direction;
     direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction.y = sin(glm::radians(pitch));
@@ -68,54 +62,20 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
     cameraFront = glm::normalize(direction);
 }
 
-void processInput(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    // Движение вперед/назад
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
-
-    // Движение влево/вправо (используем векторное произведение)
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-
-    // Движение вверх/вниз (опционально)
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraUp;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraUp;
-}
-
+//Данные квадрата
 float points[] = {
-    // Квадрат
     -0.5f, -0.5f, 0.0f,
      0.5f, -0.5f, 0.0f,
      0.5f,  0.5f, 0.0f,
-    -0.5f,  0.5f, 0.0f,
-
-    // Добавим еще один квадрат для демонстрации 3D
-    -0.8f, -0.8f, -1.0f,
-     0.8f, -0.8f, -1.0f,
-     0.8f,  0.8f, -1.0f,
-    -0.8f,  0.8f, -1.0f
+    -0.5f,  0.5f, 0.0f
 };
-
 unsigned int indices[] = {
-    // Первый квадрат
     0, 1, 2,
-    0, 2, 3,
-    // Второй квадрат
-    4, 5, 6,
-    4, 6, 7
+    0, 2, 3
 };
 
-int main()
-{
+int main() {
+    // Инициализация GLFW
     if (!glfwInit()) {
         fprintf(stderr, "ERROR: could not start GLFW3.\n");
         return 1;
@@ -126,21 +86,18 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Camera Control - OpenGL", NULL, NULL);
-
+    GLFWwindow* window = glfwCreateWindow(512, 512, "Mainwindow", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
 
-    // Устанавливаем функции обратного вызова
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // Фиксация курсора в центре окна
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
-    // Скрываем курсор и захватываем его
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
+    // Инициализация GLEW
     glewExperimental = GL_TRUE;
     GLenum ret = glewInit();
     if (ret != GLEW_OK) {
@@ -150,8 +107,19 @@ int main()
 
     printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-    // Включаем тест глубины для корректного 3D-отображения
-    glEnable(GL_DEPTH_TEST);
+    // Вывод информации о способах ориентации камеры
+    std::cout << "\n=== Способы задания ориентации камеры ===\n";
+    std::cout << "1. Look-At (glm::lookAt) - используется в программе.\n";
+    std::cout << "   Преимущества: простота, интуитивность.\n";
+    std::cout << "   Недостатки: ограниченность, зависимость от вектора 'вверх'.\n\n";
+    std::cout << "2. Кватернионы (не используются).\n";
+    std::cout << "   Преимущества: отсутствие Gimbal Lock, плавная интерполяция.\n";
+    std::cout << "   Недостатки: менее интуитивны, требуют нормализации.\n\n";
+    std::cout << "3. Углы Эйлера (используются для управления мышью).\n";
+    std::cout << "   Преимущества: интуитивность, компактность.\n";
+    std::cout << "   Недостатки: Gimbal Lock, порядок вращений имеет значение.\n";
+    std::cout << "========================================\n\n";
+
 
     GLuint VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -171,69 +139,65 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    //Шейдер
     Shader* shader = new Shader();
     if (shader->load("vert_shader.glsl", "frag_shader.glsl") == 0) {
         return 1;
     }
+    shader->use();
 
-    // Получаем размеры окна для соотношения сторон
-    int scrWidth, scrHeight;
-    glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
+    // Включаем тест глубины (для корректного 3D-вида)
+    glEnable(GL_DEPTH_TEST);
 
-    // Основной цикл рендеринга
+    // Главный цикл 
     while (!glfwWindowShouldClose(window)) {
-        // Обработка ввода
-        processInput(window);
+        // Вычисление deltaTime
+        float currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+        float cameraSpeed = 2.5f * deltaTime; // скорость перемещения
 
-        // Очистка буферов
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //Управление клавиатурой
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            cameraPos += cameraSpeed * cameraFront;
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            cameraPos -= cameraSpeed * cameraFront;
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
 
-        shader->use();
-
-        // Обновляем соотношение сторон при изменении размера окна
-        glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
-        float aspect = static_cast<float>(scrWidth) / static_cast<float>(scrHeight);
-
-        // Создание матрицы проекции (перспективная)
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-
-        // Создание матрицы вида (камера)
+        //Построение матриц
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 512.0f / 512.0f, 0.1f, 100.0f);
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-        // Создание модельной матрицы
         glm::mat4 model = glm::mat4(1.0f);
 
-        // Передаем матрицы в шейдер
-        GLint projLoc = glGetUniformLocation(shader->shaderProgram, "projection");
-        GLint viewLoc = glGetUniformLocation(shader->shaderProgram, "view");
-        GLint modelLoc = glGetUniformLocation(shader->shaderProgram, "model");
 
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-        // Анимация цвета
-        float timeValue = glfwGetTime();
-        float r = (sin(timeValue) + 1.0f) / 2.0f;
-        float g = (cos(timeValue * 0.7f) + 1.0f) / 2.0f;
-        float b = (sin(timeValue * 1.3f) + 1.0f) / 2.0f;
-        shader->glUniform("ourColor", r, g, b, 1.0f);
+        shader->setMat4("projection", projection);
+        shader->setMat4("view", view);
+        shader->setMat4("model", model);
 
         // Отрисовка
+        glClearColor(0.8f, 0.2f, 0.7f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+        float timeValue = static_cast<float>(glfwGetTime());
+        int r = static_cast<int>(255 * cos(timeValue));
+        int g = static_cast<int>(127 * sin(timeValue) + 105 * cos(timeValue));
+        int b = static_cast<int>(110 * sin(timeValue));
+        shader->glUniform("ourColor", r, g, b, 1.0f);
+
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // Очистка ресурсов
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    delete shader;
-
     glfwTerminate();
+    delete shader;
     return 0;
 }
