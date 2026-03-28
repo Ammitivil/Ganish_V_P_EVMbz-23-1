@@ -1,50 +1,44 @@
-﻿#ifndef MODEL_H
-#define MODEL_H
+﻿#pragma once
 
-#include <GL/glew.h>
-#include "GLFW/glfw3.h"
+#define GLEW_DLL
+#define GLFW_DLL
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "Mesh.h"
-
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 #include <vector>
-using namespace std;
+#include <iostream>
+#include "Mesh.h"
+#include "Shaders.h"
 
-class Model
-{
+class Model {
 public:
-    vector<Mesh> meshes;
-    string directory;
+    std::vector<Mesh> meshes;
+    std::string directory;
 
-    Model(string const& path) {
+    Model(const char* path) {
         loadModel(path);
     }
 
-    void Draw() {
+    void Draw(Shader& shader) {
         for (unsigned int i = 0; i < meshes.size(); i++) {
-            meshes[i].Draw();
+            meshes[i].Draw(shader);
         }
     }
 
 private:
-    void loadModel(string const& path) {
+    void loadModel(const std::string& path) {
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path,
             aiProcess_Triangulate |
+            aiProcess_GenSmoothNormals |
             aiProcess_FlipUVs |
             aiProcess_CalcTangentSpace);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-            cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+            std::cout << "Ошибка ASSIMP: " << importer.GetErrorString() << std::endl;
             return;
         }
 
@@ -53,7 +47,7 @@ private:
     }
 
     void processNode(aiNode* node, const aiScene* scene) {
-        // Обработка всех мешей в текущем узле
+        // Обработка всех мешей текущего узла
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             meshes.push_back(processMesh(mesh, scene));
@@ -66,32 +60,28 @@ private:
     }
 
     Mesh processMesh(aiMesh* mesh, const aiScene* scene) {
-        vector<Vertex> vertices;
-        vector<unsigned int> indices;
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
 
         // Обработка вершин
         for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
             Vertex vertex;
-            glm::vec3 vector;
 
-            // Позиции
-            vector.x = mesh->mVertices[i].x;
-            vector.y = mesh->mVertices[i].y;
-            vector.z = mesh->mVertices[i].z;
-            vertex.Position = vector;
+            // Позиция
+            vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 
-            // Нормали
+            // Нормаль
             if (mesh->HasNormals()) {
-                vector.x = mesh->mNormals[i].x;
-                vector.y = mesh->mNormals[i].y;
-                vector.z = mesh->mNormals[i].z;
-                vertex.Normal = vector;
+                vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+            }
+            else {
+                vertex.Normal = glm::vec3(0.0f, 0.0f, 0.0f);
             }
 
             vertices.push_back(vertex);
         }
 
-        // Обработка индексов (полигонов)
+        // Обработка индексов (граней)
         for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
             aiFace face = mesh->mFaces[i];
             for (unsigned int j = 0; j < face.mNumIndices; j++) {
@@ -102,5 +92,3 @@ private:
         return Mesh(vertices, indices);
     }
 };
-
-#endif

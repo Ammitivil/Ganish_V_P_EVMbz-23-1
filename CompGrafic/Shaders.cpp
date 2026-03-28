@@ -59,9 +59,19 @@ int Shader::load(const char* vert_sh_path, const char* frag_sh_path) {
     }
 
     shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, fs);
     glAttachShader(shaderProgram, vs);
+    glAttachShader(shaderProgram, fs);
     glLinkProgram(shaderProgram);
+
+    // Проверка линковки
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 1024, NULL, infoLog);
+        fprintf(stderr, "Ошибка линковки шейдерной программы: %s\n", infoLog);
+        glDeleteShader(vs);
+        glDeleteShader(fs);
+        return 0;
+    }
 
     glDeleteShader(vs);
     glDeleteShader(fs);

@@ -25,15 +25,24 @@ public:
 
     // Унифицированные методы для передачи uniform-переменных
     void setMat4(const char* name, const glm::mat4& mat) {
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, name), 1, GL_FALSE, glm::value_ptr(mat));
+        GLint location = glGetUniformLocation(shaderProgram, name);
+        if (location != -1) {
+            glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
+        }
     }
 
     void setVec3(const char* name, const glm::vec3& vec) {
-        glUniform3fv(glGetUniformLocation(shaderProgram, name), 1, glm::value_ptr(vec));
+        GLint location = glGetUniformLocation(shaderProgram, name);
+        if (location != -1) {
+            glUniform3fv(location, 1, glm::value_ptr(vec));
+        }
     }
 
     void setFloat(const char* name, float value) {
-        glUniform1f(glGetUniformLocation(shaderProgram, name), value);
+        GLint location = glGetUniformLocation(shaderProgram, name);
+        if (location != -1) {
+            glUniform1f(location, value);
+        }
     }
 
     void glUniform(const char* cl_name, float r, float g, float b);
