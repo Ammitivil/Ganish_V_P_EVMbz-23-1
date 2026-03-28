@@ -1,4 +1,4 @@
-#version 410 core
+п»ї#version 410 core
 out vec4 frag_colour;
 
 in vec3 FragPos;
@@ -9,9 +9,9 @@ uniform vec3 lightPos;
 uniform vec3 lightColor;
 uniform vec3 viewPos;
 
-// Функция преобразования HSV (оттенка) в RGB
+// Р¤СѓРЅРєС†РёСЏ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ HSV (РѕС‚С‚РµРЅРєР°) РІ RGB
 vec3 hue2rgb(float hue) {
-    // hue: 0.0 - 1.0 (циклический переход по цветовому кругу)
+    // hue: 0.0 - 1.0 (С†РёРєР»РёС‡РµСЃРєРёР№ РїРµСЂРµС…РѕРґ РїРѕ С†РІРµС‚РѕРІРѕРјСѓ РєСЂСѓРіСѓ)
     float r = clamp(abs(hue * 6.0 - 3.0) - 1.0, 0.0, 1.0);
     float g = clamp(2.0 - abs(hue * 6.0 - 2.0), 0.0, 1.0);
     float b = clamp(2.0 - abs(hue * 6.0 - 4.0), 0.0, 1.0);
@@ -19,33 +19,33 @@ vec3 hue2rgb(float hue) {
 }
 
 void main() {
-    // Плавный циклический перелив цвета от времени
-    // Скорость перелива: 0.2 - плавная, приятная скорость
+    // РџР»Р°РІРЅС‹Р№ С†РёРєР»РёС‡РµСЃРєРёР№ РїРµСЂРµР»РёРІ С†РІРµС‚Р° РѕС‚ РІСЂРµРјРµРЅРё
+    // РЎРєРѕСЂРѕСЃС‚СЊ РїРµСЂРµР»РёРІР°: 0.2 - РїР»Р°РІРЅР°СЏ, РїСЂРёСЏС‚РЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ
     float hue = fract(time * 0.2);
     
-    // Получаем цвет перелива
+    // РџРѕР»СѓС‡Р°РµРј С†РІРµС‚ РїРµСЂРµР»РёРІР°
     vec3 rainbowColor = hue2rgb(hue);
     
-    // Нормализуем нормаль
+    // РќРѕСЂРјР°Р»РёР·СѓРµРј РЅРѕСЂРјР°Р»СЊ
     vec3 norm = normalize(Normal);
     
-    // Направление света
+    // РќР°РїСЂР°РІР»РµРЅРёРµ СЃРІРµС‚Р°
     vec3 lightDir = normalize(lightPos - FragPos);
     
-    // Диффузное освещение
+    // Р”РёС„С„СѓР·РЅРѕРµ РѕСЃРІРµС‰РµРЅРёРµ
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
     
-    // Спекулярное освещение
+    // РЎРїРµРєСѓР»СЏСЂРЅРѕРµ РѕСЃРІРµС‰РµРЅРёРµ
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
     vec3 specular = 0.5 * spec * lightColor;
     
-    // Ambient освещение
+    // Ambient РѕСЃРІРµС‰РµРЅРёРµ
     vec3 ambient = 0.3 * lightColor;
     
-    // Итоговый цвет = освещение * цвет перелива
+    // РС‚РѕРіРѕРІС‹Р№ С†РІРµС‚ = РѕСЃРІРµС‰РµРЅРёРµ * С†РІРµС‚ РїРµСЂРµР»РёРІР°
     vec3 result = (ambient + diffuse + specular) * rainbowColor;
     frag_colour = vec4(result, 1.0);
 }
