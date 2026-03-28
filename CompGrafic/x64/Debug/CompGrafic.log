@@ -1,4 +1,6 @@
 ﻿  CompGrafic.cpp
+  Shaders.cpp
+  Создание кода...
      Создается библиотека C:\Users\Honor\source\repos\Ammitivil\Ganish_V_P_EVMbz-23-1\x64\Debug\CompGrafic.lib и объект C:\Users\Honor\source\repos\Ammitivil\Ganish_V_P_EVMbz-23-1\x64\Debug\CompGrafic.exp
 LINK : warning LNK4217: Символ "glewInit", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
 LINK : warning LNK4217: Символ "glewGetErrorString", определенный в "glew.obj", импортирован "CompGrafic.obj" в функции "main".
