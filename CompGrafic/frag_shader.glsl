@@ -11,6 +11,7 @@ uniform vec3 viewPos;
 
 // Функция преобразования HSV (оттенка) в RGB
 vec3 hue2rgb(float hue) {
+    // hue: 0.0 - 1.0 (циклический переход по цветовому кругу)
     float r = clamp(abs(hue * 6.0 - 3.0) - 1.0, 0.0, 1.0);
     float g = clamp(2.0 - abs(hue * 6.0 - 2.0), 0.0, 1.0);
     float b = clamp(2.0 - abs(hue * 6.0 - 4.0), 0.0, 1.0);
@@ -18,11 +19,11 @@ vec3 hue2rgb(float hue) {
 }
 
 void main() {
-    // Радужный цвет: hue зависит от времени и координаты X фрагмента
-    // Изменяем параметры для более красивого перелива
-    float hue = fract(time * 0.3 + FragPos.x * 0.2 + FragPos.y * 0.1 + FragPos.z * 0.15);
+    // Плавный циклический перелив цвета от времени
+    // Скорость перелива: 0.2 - плавная, приятная скорость
+    float hue = fract(time * 0.2);
     
-    // Получаем радужный цвет
+    // Получаем цвет перелива
     vec3 rainbowColor = hue2rgb(hue);
     
     // Нормализуем нормаль
@@ -44,7 +45,7 @@ void main() {
     // Ambient освещение
     vec3 ambient = 0.3 * lightColor;
     
-    // Итоговый цвет = освещение * радужный цвет
+    // Итоговый цвет = освещение * цвет перелива
     vec3 result = (ambient + diffuse + specular) * rainbowColor;
     frag_colour = vec4(result, 1.0);
 }
