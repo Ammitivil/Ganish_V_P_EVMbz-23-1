@@ -122,17 +122,44 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
-    // Параметры освещения (усилены для яркости радужного эффекта)
+    // Параметры освещения
+    // Позиция источника света
     glm::vec3 lightPos = glm::vec3(3.0f, 5.0f, 4.0f);
-    glm::vec3 lightColor = glm::vec3(1.2f, 1.2f, 1.2f); // Яркий белый свет
+
+    // Настройка компонентов источника света 
+    // Окружающий свет - низкая интенсивность, чтобы не доминировать
+    glm::vec3 lightAmbient = glm::vec3(0.2f, 0.2f, 0.2f);
+    // Диффузный свет - яркий белый цвет
+    glm::vec3 lightDiffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+    // Зеркальный свет - полная интенсивность
+    glm::vec3 lightSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    // Настройка материала объекта 
+    // Материал для радужного эффекта: диффузный компонент будет модулироваться цветом перелива
+    glm::vec3 materialAmbient = glm::vec3(0.3f, 0.3f, 0.3f);
+    glm::vec3 materialDiffuse = glm::vec3(1.0f, 1.0f, 1.0f);   // Полная интенсивность для яркого перелива
+    glm::vec3 materialSpecular = glm::vec3(0.8f, 0.8f, 0.8f);  // Яркие блики
+    float materialShininess = 64.0f;  // Более резкие блики для лучшего эффекта
 
     // Проверка uniform переменных в шейдере
     std::cout << "\n=== Проверка uniform переменных ===\n";
     GLint loc;
-    loc = glGetUniformLocation(shader->shaderProgram, "lightPos");
-    std::cout << "lightPos location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "lightColor");
-    std::cout << "lightColor location: " << loc << std::endl;
+    loc = glGetUniformLocation(shader->shaderProgram, "light.position");
+    std::cout << "light.position location: " << loc << std::endl;
+    loc = glGetUniformLocation(shader->shaderProgram, "light.ambient");
+    std::cout << "light.ambient location: " << loc << std::endl;
+    loc = glGetUniformLocation(shader->shaderProgram, "light.diffuse");
+    std::cout << "light.diffuse location: " << loc << std::endl;
+    loc = glGetUniformLocation(shader->shaderProgram, "light.specular");
+    std::cout << "light.specular location: " << loc << std::endl;
+    loc = glGetUniformLocation(shader->shaderProgram, "material.ambient");
+    std::cout << "material.ambient location: " << loc << std::endl;
+    loc = glGetUniformLocation(shader->shaderProgram, "material.diffuse");
+    std::cout << "material.diffuse location: " << loc << std::endl;
+    loc = glGetUniformLocation(shader->shaderProgram, "material.specular");
+    std::cout << "material.specular location: " << loc << std::endl;
+    loc = glGetUniformLocation(shader->shaderProgram, "material.shininess");
+    std::cout << "material.shininess location: " << loc << std::endl;
     loc = glGetUniformLocation(shader->shaderProgram, "time");
     std::cout << "time location: " << loc << std::endl;
     loc = glGetUniformLocation(shader->shaderProgram, "viewPos");
@@ -140,7 +167,8 @@ int main() {
     std::cout << "==================================\n\n";
 
     std::cout << "=== Радужный эффект активирован ===\n";
-    std::cout << "Цвет модели переливается в зависимости от времени и положения!\n\n";
+    std::cout << "Цвет модели переливается в зависимости от времени и положения!\n";
+    std::cout << "Освещение настроено по модели Фонга (окружающий + диффузный + зеркальный)\n\n";
 
     // Главный цикл 
     while (!glfwWindowShouldClose(window)) {
@@ -178,12 +206,22 @@ int main() {
         // Передача времени для анимации радужного эффекта
         shader->setFloat("time", currentFrame);
 
-        // Передача параметров освещения
-        shader->setVec3("lightPos", lightPos);
-        shader->setVec3("lightColor", lightColor);
+        // Передача параметров источника света (используем структуру Light)
+        shader->setVec3("light.position", lightPos);
+        shader->setVec3("light.ambient", lightAmbient);
+        shader->setVec3("light.diffuse", lightDiffuse);
+        shader->setVec3("light.specular", lightSpecular);
+
+        // Передача параметров материала (используем структуру Material)
+        shader->setVec3("material.ambient", materialAmbient);
+        shader->setVec3("material.diffuse", materialDiffuse);
+        shader->setVec3("material.specular", materialSpecular);
+        shader->setFloat("material.shininess", materialShininess);
+
+        // Передача позиции камеры для расчета зеркальных бликов
         shader->setVec3("viewPos", cameraPos);
 
-        // Отрисовка
+        // Отрисовка (цвет фона не изменен)
         glClearColor(0.8f, 0.2f, 0.7f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
