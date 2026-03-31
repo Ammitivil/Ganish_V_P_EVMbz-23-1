@@ -14,7 +14,7 @@
 #include "Shaders.h"
 #include "Model.h"
 
-//Параметры камеры
+// Параметры камеры
 glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 5.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -29,7 +29,36 @@ float sensitivity = 0.1f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-//Функция обратного вызова мыши
+// Углы поворотов (в градусах)
+float angleStand = 0.0f;          // вращение станины вокруг Y (горизонтальное)
+float angleBrush = 0.0f;          // вращение кисти+манипулятора вокруг оси Z
+float angleManipSelf = 0.0f;      // вращение манипулятора вокруг своей оси (X)
+
+// Ограничение для угла кисти: ±10 градусов
+const float MAX_BRUSH_ANGLE = 10.0f;
+const float MIN_BRUSH_ANGLE = -10.0f;
+
+// Скорость вращения (градусов в секунду)
+const float ROTATION_SPEED = 45.0f;
+
+// Точка крепления станины к основанию
+const glm::vec3 pivotStand = glm::vec3(0.522907f, 0.424285f, -4.541827f);
+// Пересечение кисти с основанием
+const glm::vec3 pivotBrushBase = glm::vec3(0.522907f, 0.0f, -4.541827f);
+
+// Начальный поворот модели 
+const glm::mat4 baseRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+// Вспомогательная функция: матрица поворота вокруг произвольной точки
+glm::mat4 getRotationAroundPoint(const glm::vec3& pivot, float angleDeg, const glm::vec3& axis) {
+    glm::mat4 mat = glm::mat4(1.0f);
+    mat = glm::translate(mat, pivot);
+    mat = glm::rotate(mat, glm::radians(angleDeg), axis);
+    mat = glm::translate(mat, -pivot);
+    return mat;
+}
+
+
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
@@ -73,7 +102,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(1024, 768, "Grafic Model Viewer - Rainbow Effect", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1024, 768, "Grafic Model Viewer - Manipulator Rotation Around X", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -93,91 +122,63 @@ int main() {
 
     printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-    // Вывод информации о способах ориентации камеры
-    std::cout << "\n=== Способы задания ориентации камеры ===\n";
-    std::cout << "1. Look-At (glm::lookAt) - используется в программе.\n";
-    std::cout << "   Преимущества: простота, интуитивность.\n";
-    std::cout << "   Недостатки: ограниченность, зависимость от вектора 'вверх'.\n\n";
-    std::cout << "2. Кватернионы (не используются).\n";
-    std::cout << "   Преимущества: отсутствие Gimbal Lock, плавная интерполяция.\n";
-    std::cout << "   Недостатки: менее интуитивны, требуют нормализации.\n\n";
-    std::cout << "3. Углы Эйлера (используются для управления мышью).\n";
-    std::cout << "   Преимущества: интуитивность, компактность.\n";
-    std::cout << "   Недостатки: Gimbal Lock, порядок вращений имеет значение.\n";
-    std::cout << "========================================\n\n";
-
-    // Создание и загрузка модели
+    // Загрузка модели
     std::cout << "\n=== Загрузка модели Grafic ===\n";
     Model ourModel("Grafic.obj");
     std::cout << "Модель загружена. Количество мешей: " << ourModel.meshes.size() << std::endl;
+
+    if (ourModel.meshes.size() < 4) {
+        std::cout << "ОШИБКА: модель должна содержать как минимум 4 меша.\n";
+        std::cout << "Завершение программы.\n";
+        glfwTerminate();
+        return 1;
+    }
+    std::cout << "Предполагаемый порядок мешей: 0 - Основание, 1 - Станина, 2 - Кисть, 3 - Манипулятор.\n";
+
+    // Вычисляем центр манипулятора
+    glm::vec3 localPivotSelf = ourModel.getMeshCenter(3);
+    std::cout << "Вычисленный центр манипулятора: ("
+        << localPivotSelf.x << ", "
+        << localPivotSelf.y << ", "
+        << localPivotSelf.z << ")\n";
     std::cout << "================================\n\n";
 
-    //Шейдер
-    Shader* shader = new Shader();
-    if (shader->load("vert_shader.glsl", "frag_shader.glsl") == 0) {
+    // Шейдер
+    Shader shader;
+    if (shader.load("vert_shader.glsl", "frag_shader.glsl") == 0) {
         std::cout << "Ошибка загрузки шейдеров!" << std::endl;
         return 1;
     }
-    shader->use();
+    shader.use();
 
     glEnable(GL_DEPTH_TEST);
 
     // Параметры освещения
-    // Позиция источника света
     glm::vec3 lightPos = glm::vec3(3.0f, 5.0f, 4.0f);
-
-    // Настройка компонентов источника света 
-    // Окружающий свет - низкая интенсивность, чтобы не доминировать
     glm::vec3 lightAmbient = glm::vec3(0.2f, 0.2f, 0.2f);
-    // Диффузный свет - яркий белый цвет
     glm::vec3 lightDiffuse = glm::vec3(0.8f, 0.8f, 0.8f);
-    // Зеркальный свет - полная интенсивность
     glm::vec3 lightSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
 
-    // Настройка материала объекта 
-    // Материал для радужного эффекта: диффузный компонент будет модулироваться цветом перелива
     glm::vec3 materialAmbient = glm::vec3(0.3f, 0.3f, 0.3f);
-    glm::vec3 materialDiffuse = glm::vec3(1.0f, 1.0f, 1.0f);   // Полная интенсивность для яркого перелива
-    glm::vec3 materialSpecular = glm::vec3(0.8f, 0.8f, 0.8f);  // Яркие блики
-    float materialShininess = 64.0f;  // Более резкие блики для лучшего эффекта
+    glm::vec3 materialDiffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 materialSpecular = glm::vec3(0.8f, 0.8f, 0.8f);
+    float materialShininess = 64.0f;
 
-    // Проверка uniform переменных в шейдере
-    std::cout << "\n=== Проверка uniform переменных ===\n";
-    GLint loc;
-    loc = glGetUniformLocation(shader->shaderProgram, "light.position");
-    std::cout << "light.position location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "light.ambient");
-    std::cout << "light.ambient location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "light.diffuse");
-    std::cout << "light.diffuse location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "light.specular");
-    std::cout << "light.specular location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "material.ambient");
-    std::cout << "material.ambient location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "material.diffuse");
-    std::cout << "material.diffuse location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "material.specular");
-    std::cout << "material.specular location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "material.shininess");
-    std::cout << "material.shininess location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "time");
-    std::cout << "time location: " << loc << std::endl;
-    loc = glGetUniformLocation(shader->shaderProgram, "viewPos");
-    std::cout << "viewPos location: " << loc << std::endl;
-    std::cout << "==================================\n\n";
+    std::cout << "=== Управление иерархическими аффинными преобразованиями ===\n";
+    std::cout << "Станина (горизонтальный поворот вокруг Y):               Q / E\n";
+    std::cout << "Кисть+манипулятор (вращение вокруг оси Z, центр = пересечение кисти с основанием): R / F\n";
+    std::cout << "  Ограничение: угол не более ±10 градусов от начального\n";
+    std::cout << "Вращение манипулятора вокруг своей оси (X):             T / G\n";
+    std::cout << "============================================================\n\n";
 
-    std::cout << "=== Радужный эффект активирован ===\n";
-    std::cout << "Цвет модели переливается в зависимости от времени и положения!\n";
-    std::cout << "Освещение настроено по модели Фонга (окружающий + диффузный + зеркальный)\n\n";
-
-    // Главный цикл 
+    // Главный цикл
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        float cameraSpeed = 2.5f * deltaTime;
 
-        //Управление клавиатурой
+        // Управление камерой
+        float cameraSpeed = 2.5f * deltaTime;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             cameraPos += cameraSpeed * cameraFront;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -189,49 +190,75 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        //Построение матриц
+        // Управление аффинными преобразованиями
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+            angleStand += ROTATION_SPEED * deltaTime;
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+            angleStand -= ROTATION_SPEED * deltaTime;
+
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+            angleBrush += ROTATION_SPEED * deltaTime;
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+            angleBrush -= ROTATION_SPEED * deltaTime;
+        if (angleBrush > MAX_BRUSH_ANGLE) angleBrush = MAX_BRUSH_ANGLE;
+        if (angleBrush < MIN_BRUSH_ANGLE) angleBrush = MIN_BRUSH_ANGLE;
+
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+            angleManipSelf += ROTATION_SPEED * deltaTime;
+        if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+            angleManipSelf -= ROTATION_SPEED * deltaTime;
+
+        // Матрицы проекции и вида
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        glm::mat4 model = glm::mat4(1.0f);
 
-        // Поворот модели для лучшего обзора
-        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+        shader.setFloat("time", currentFrame);
 
-        shader->setMat4("projection", projection);
-        shader->setMat4("view", view);
-        shader->setMat4("model", model);
+        // Параметры освещения
+        shader.setVec3("light.position", lightPos);
+        shader.setVec3("light.ambient", lightAmbient);
+        shader.setVec3("light.diffuse", lightDiffuse);
+        shader.setVec3("light.specular", lightSpecular);
+        shader.setVec3("material.ambient", materialAmbient);
+        shader.setVec3("material.diffuse", materialDiffuse);
+        shader.setVec3("material.specular", materialSpecular);
+        shader.setFloat("material.shininess", materialShininess);
+        shader.setVec3("viewPos", cameraPos);
 
-        // Передача времени для анимации радужного эффекта
-        shader->setFloat("time", currentFrame);
-
-        // Передача параметров источника света (используем структуру Light)
-        shader->setVec3("light.position", lightPos);
-        shader->setVec3("light.ambient", lightAmbient);
-        shader->setVec3("light.diffuse", lightDiffuse);
-        shader->setVec3("light.specular", lightSpecular);
-
-        // Передача параметров материала (используем структуру Material)
-        shader->setVec3("material.ambient", materialAmbient);
-        shader->setVec3("material.diffuse", materialDiffuse);
-        shader->setVec3("material.specular", materialSpecular);
-        shader->setFloat("material.shininess", materialShininess);
-
-        // Передача позиции камеры для расчета зеркальных бликов
-        shader->setVec3("viewPos", cameraPos);
-
-        // Отрисовка (цвет фона не изменен)
+        // Очистка экрана
         glClearColor(0.8f, 0.2f, 0.7f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ourModel.Draw(*shader);
+
+        // 1. Основание – только начальный поворот (неподвижно)
+        glm::mat4 modelBase = baseRotation;
+        shader.setMat4("model", modelBase);
+        ourModel.meshes[0].Draw(shader);
+
+        // 2. Станина – начальный поворот + вращение вокруг pivotStand (ось Y)
+        glm::mat4 modelStand = baseRotation * getRotationAroundPoint(pivotStand, angleStand, glm::vec3(0.0f, 1.0f, 0.0f));
+        shader.setMat4("model", modelStand);
+        ourModel.meshes[1].Draw(shader);
+
+        // 3. Кисть – наследует станину, затем вращение вокруг оси Z с ограниченным углом
+        glm::mat4 modelBrush = modelStand * getRotationAroundPoint(pivotBrushBase, angleBrush, glm::vec3(0.0f, 0.0f, 1.0f));
+        shader.setMat4("model", modelBrush);
+        ourModel.meshes[2].Draw(shader);
+
+        // 4. Манипулятор – наследует кисть, плюс собственное вращение вокруг своей оси X (как колесо)
+        // Используем вычисленный центр localPivotSelf (в локальных координатах кисти)
+        glm::mat4 modelManip = modelBrush * getRotationAroundPoint(localPivotSelf, angleManipSelf, glm::vec3(1.0f, 0.0f, 0.0f));
+        shader.setMat4("model", modelManip);
+        ourModel.meshes[3].Draw(shader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glfwTerminate();
-    delete shader;
     return 0;
 }
